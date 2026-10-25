@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pokédex · National Pokédex</title>
+<meta name="description" content="Search all 1,025 Pokémon by name or National Pokédex number." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='white' stroke='%23262a31' stroke-width='4'/%3E%3Cpath d='M2 24a22 22 0 0 1 44 0Z' fill='%23e3350d'/%3E%3Crect x='2' y='20' width='44' height='8' fill='%23262a31'/%3E%3Ccircle cx='24' cy='24' r='8' fill='white' stroke='%23262a31' stroke-width='4'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  /* ============ Design tokens ============ */
+  :root {
+    --ink: #1e232a; --ink-2: #59626d; --ink-3: #8a929c;
+    --line: #e2e6eb;
+    --nav-bg: #22262e;
+    --orange: #f58220; --orange-h: #ff8f33;
+    --blue: #2b6cd4; --blue-h: #3a7ae2;
+    --green-bg: #e7f4e7; --green-line: #c3e3c6; --green-ink: #266b3a; --green-ic: #2f7d43;
+    --radius: 16px;
+    --shadow-1: 0 1px 2px rgba(16,24,40,.05), 0 4px 14px -6px rgba(16,24,40,.12);
+    --font-ui: 'Nunito', 'Segoe UI', sans-serif;
+    --font-display: 'Fredoka', 'Trebuchet MS', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font-ui); color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  img { display: block; max-width: 100%; }
+  ul { list-style: none; }
+  ::selection { background: #ffd9b8; }
+  :focus-visible { outline: 3px solid rgba(43,108,212,.45); outline-offset: 2px; border-radius: 8px; }
+
+  /* ============ Top dark navigation ============ */
+  .nav { position: sticky; top: 0; z-index: 60; background: var(--nav-bg); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 12px rgba(10,12,16,.28); }
+  .nav-inner { max-width: 1160px; margin: 0 auto; padding: 0 22px; height: 58px; display: flex; align-items: center; gap: 22px; }
+  .brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; }
+  .brand-name { font-family: var(--font-display); font-weight: 600; font-size: 21px; letter-spacing: .4px; }
+  .brand-tag { font-size: 9.5px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; color: #f5b21f; border: 1.5px solid rgba(245,178,31,.5); padding: 2px 8px 3px; border-radius: 999px; }
+  .nav-links { margin-left: auto; display: flex; gap: 4px; }
+  .nav-link { display: flex; align-items: center; gap: 8px; padding: 8px 13px; border-radius: 10px; font-weight: 700; font-size: 13.5px; color: #aeb4bd; transition: color .18s, background .18s; }
+  .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
+
+  /* ============ Search hero ============ */
+  .hero { background: #fff; padding: 44px 22px 30px; scroll-margin-top: 70px; }
+  .hero-inner { max-width: 760px; margin: 0 auto; }
+  .kicker { text-align: center; font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 4.4vw, 40px); line-height: 1.1; }
+  .search-row { display: flex; gap: 12px; margin: 26px 0 14px; }
+  .search-field { position: relative; flex: 1; }
+  .lead-icon { position: absolute; left: 18px; top: 50%; transform: translate3d(0, -50%, 0); color: var(--ink-3); display: grid; place-items: center; pointer-events: none; }
+  .search-input { width: 100%; height: 54px; border-radius: 999px; border: 2px solid var(--line); background: #fff; padding: 0 20px 0 50px; font: 700 16px var(--font-ui); color: var(--ink); box-shadow: var(--shadow-1); transition: border-color .18s, box-shadow .18s; }
+  .search-input::placeholder { color: #9aa2ab; font-weight: 600; }
+  .search-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px rgba(43,108,212,.14), var(--shadow-1); }
+  .search-btn { flex: none; width: 54px; height: 54px; border-radius: 999px; background: var(--orange); color: #fff; display: grid; place-items: center; box-shadow: inset 0 -4px 0 rgba(0,0,0,.18), 0 6px 16px -6px rgba(207,100,16,.55); transition: transform .16s, background .16s, box-shadow .16s; }
+  .search-btn:hover { background: var(--orange-h); transform: translate3d(0, -2px, 0); }
+  .search-btn:active { transform: translate3d(0, 1px, 0); box-shadow: inset 0 -2px 0 rgba(0,0,0,.18); }
+
+  .callout { display: flex; gap: 14px; align-items: center; background: var(--green-bg); border: 1.5px solid var(--green-line); color: var(--green-ink); border-radius: 14px; padding: 12px 18px; font-weight: 700; font-size: 14.5px; }
+  .icon-badge { flex: none; width: 34px; height: 34px; border-radius: 999px; background: var(--green-ic); color: #fff; display: grid; place-items: center; }
+
+  .adv-toggle { width: 100%; margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid var(--line); border-radius: 12px; padding: 12px; font-weight: 800; font-size: 14px; color: var(--ink-2); background: #fff; transition: color .18s, background .18s, border-color .18s; }
+  .adv-toggle:hover, .adv-toggle.open { color: var(--blue); border-color: rgba(43,108,212,.4); background: #f2f7ff; }
+  .chev { display: grid; place-items: center; transition: transform .32s cubic-bezier(.22,1,.36,1); }
+  .adv-toggle.open .chev, .flip { transform: rotate(180deg); }
+
+  .collapse { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .38s cubic-bezier(.22,1,.36,1); }
+  .collapse.open { grid-template-rows: 1fr; }
+  .collapse-in { overflow: hidden; min-height: 0; }
+  .adv-panel { padding: 22px 2px 4px; }
+  .adv-group-label { font-size: 11px; font-weight: 900; letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .type-chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px 8px; border-radius: 999px; border: 2px solid var(--chip); font-weight: 800; font-size: 12.5px; color: var(--ink-2); background: #fff; transition: transform .15s, color .15s, background .15s, border-color .15s; }
+  .type-chip .dot { width: 10px; height: 10px; border-radius: 999px; background: var(--chip); box-shadow: inset 0 -1px 2px rgba(0,0,0,.25), inset 0 1px 1px rgba(255,255,255,.45); }
+  .type-chip:hover { transform: translate3d(0, -1px, 0); }
+  .type-chip.on { color: var(--tx, #fff); background: linear-gradient(180deg, var(--chip-l), var(--chip-d)); border-color: transparent; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 4px rgba(0,0,0,.2), 0 3px 8px -3px rgba(0,0,0,.3); text-shadow: 0 1px 1px rgba(0,0,0,.22); }
+  .gen-chip { --chip: #64707d; --chip-l: #8a95a3; --chip-d: #454f5a; --tx: #fff; }
+  .adv-reset { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; color: #c2453a; padding: 4px 6px; border-radius: 8px; }
+  .adv-reset:hover { background: #fbeeed; }
+
+  /* ============ Action band ============ */
+  .action-band { background: #f6f7f9; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .action-row { max-width: 1160px; margin: 0 auto; padding: 18px 22px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .btn-surprise { display: inline-flex; align-items: center; gap: 9px; height: 46px; padding: 0 20px; border-radius: 999px; background: var(--blue); color: #fff; font-weight: 800; font-size: 15px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.18), 0 6px 14px -6px rgba(30,87,176,.6); transition: transform .16s, background .16s; }
+  .btn-surprise:hover { background: var(--blue-h); transform: translate3d(0, -2px, 0); }
+  .btn-surprise:active { transform: translate3d(0, 1px, 0); }
+  .result-meta { display: flex; align-items: center; gap: 9px; font-weight: 700; color: var(--ink-2); font-size: 14px; }
+  .result-meta b { color: var(--ink); }
+  .mini-spin { width: 15px; height: 15px; border-radius: 50%; border: 2.5px solid rgba(43,108,212,.2); border-top-color: var(--blue); animation: spin .9s linear infinite; }
+
+  .sort-wrap { margin-left: auto; position: relative; }
+  .sort-btn { height: 46px; padding: 0 15px; border-radius: 12px; border: 2px solid var(--line); background: #fff; font-weight: 700; font-size: 13.5px; display: flex; gap: 10px; align-items: center; box-shadow: var(--shadow-1); transition: border-color .15s; }
+  .sort-btn:hover { border-color: #c9d0d8; }
+  .sort-k { color: var(--ink-3); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px; }
+  .sort-v { color: var(--ink); font-weight: 800; }
+  .sort-menu { position: absolute; right: 0; top: calc(100% + 8px); min-width: 236px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 6px; box-shadow: 0 18px 44px -12px rgba(16,24,40,.28); opacity: 0; visibility: hidden; transform: translate3d(0, -8px, 0) scale(.98); transform-origin: top right; transition: opacity .18s, transform .18s, visibility .18s; z-index: 40; }
+  .sort-menu.open { opacity: 1; visibility: visible; transform: none; }
+  .sort-item { width: 100%; text-align: left; padding: 10px 12px; border-radius: 9px; font-weight: 700; font-size: 14px; color: var(--ink-2); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .sort-item:hover { background: #f2f5f9; color: var(--ink); }
+  .sort-item.on { color: var(--blue); background: #eef4ff; }
+
+  /* ============ Card field (diagonal pattern) ============ */
+  .dex { background: repeating-linear-gradient(-45deg, rgba(31,41,51,.045) 0 2px, transparent 2px 18px), #eef1f4; padding: 28px 22px 64px; min-height: 380px; scroll-margin-top: 70px; }
+  .dex-inner { max-width: 1160px; margin: 0 auto; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 28px 22px; }
+
+  /* Off-screen render cost control */
+  .card-slot { content-visibility: auto; contain-intrinsic-size: auto 305px; }
+
+  .card-tilt { --tr: 105,112,120; position: relative; border-radius: var(--radius); transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(0, var(--ty, 0px), 0); transition: transform .2s ease-out; }
+  .card-tilt:hover { will-change: transform; }
+  .card-glow { position: absolute; inset: -18px -12px -24px; border-radius: 32px; background: radial-gradient(55% 50% at 50% 42%, rgba(var(--tr), .5), rgba(var(--tr), .16) 60%, transparent 78%); opacity: 0; transition: opacity .55s ease; pointer-events: none; }
+  .card-tilt.typed .card-glow { opacity: .75; }
+  .card-tilt:hover .card-glow { opacity: 1; }
+  .card { position: relative; width: 100%; background: #fff; border: 1px solid #e5e8ec; border-radius: var(--radius); padding: 16px 14px 18px; text-align: center; box-shadow: var(--shadow-1); overflow: hidden; display: block; transition: box-shadow .2s, border-color .2s; }
+  .card:hover { border-color: rgba(var(--tr), .5); box-shadow: 0 12px 26px -10px rgba(var(--tr), .55), 0 2px 6px rgba(16,24,40,.06); }
+  .card-id { display: block; font-weight: 800; font-size: 12px; color: #a4acb5; letter-spacing: .4px; font-variant-numeric: tabular-nums; }
+  .card-figure { position: relative; width: 132px; height: 122px; margin: 6px auto 2px; display: block; }
+  .card-art { position: absolute; inset: 0; margin: auto; width: 116px; height: 116px; object-fit: contain; filter: drop-shadow(0 10px 14px rgba(var(--tr), .38)); opacity: 0; transform: translate3d(0, 6px, 0) scale(.92); transition: opacity .45s ease, transform .45s cubic-bezier(.22,1,.36,1); }
+  .card-art.is-loaded { opacity: 1; transform: none; }
+  .card-name { display: block; font-family: var(--font-display); font-weight: 600; font-size: 20px; margin: 2px 0 10px; }
+  .card-types { display: flex; justify-content: center; gap: 6px; min-height: 24px; }
+  .card-sheen { position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.5), transparent 55%); opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .card-tilt:hover .card-sheen { opacity: .55; }
+
+  /* Type badges (gradient pill + inset lighting) */
+  .badge { --bl: #9aa1ab; --bd: #6f757e; display: inline-flex; align-items: center; padding: 4px 11px 5px; border-radius: 999px; font-size: 10px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; color: #fff; background: linear-gradient(180deg, var(--bl), var(--bd)); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 3px rgba(0,0,0,.18), 0 2px 4px -1px rgba(0,0,0,.25); text-shadow: 0 1px 1px rgba(0,0,0,.28); }
+  .badge-sm { padding: 3px 9px 4px; font-size: 9.5px; }
+
+  /* Skeletons (shimmer on transform only) */
+  .ph { position: relative; overflow: hidden; background: #e8ebee; border-radius: 8px; display: block; animation: phpulse 1.5s ease-in-out infinite; }
+  .ph::after { content: ""; position: absolute; inset: 0; transform: translate3d(-100%, 0, 0); background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent); animation: shimmer 1.4s infinite; }
+  .ph-fig { position: absolute; inset: 0; border-radius: 18px; }
+  .ph-fig-big { width: 200px; height: 200px; border-radius: 999px; margin: 10px auto; }
+  .ph-b { width: 62px; height: 23px; border-radius: 999px; }
+  .ph-line { height: 15px; width: 72%; border-radius: 6px; margin: 6px 0; }
+  .skel-card { background: #fff; border: 1px solid #e5e8ec; border-radius: var(--radius); padding: 16px 14px 18px; text-align: center; }
+  .sk-id { width: 44px; height: 12px; margin: 0 auto; }
+  .sk-fig { width: 116px; height: 116px; border-radius: 999px; margin: 10px auto; }
+  .sk-name { width: 90px; height: 18px; margin: 4px auto 12px; }
+  .sk-badges { display: flex; justify-content: center; gap: 6px; }
+  .sk-b { width: 62px; height: 22px; border-radius: 999px; }
+  @keyframes shimmer { to { transform: translate3d(100%, 0, 0); } }
+  @keyframes phpulse { 50% { opacity: .72; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .sentinel { display: flex; justify-content: center; padding: 34px 0 8px; }
+  .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3.5px solid rgba(31,35,42,.12); border-top-color: var(--blue); animation: spin .9s linear infinite; }
+  .spinner.sm { width: 26px; height: 26px; border-width: 3px; }
+
+  .end-note { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 30px 0 4px; font-weight: 800; color: #98a0aa; font-size: 13px; }
+  .end-line { height: 1px; flex: 1; max-width: 180px; background: linear-gradient(90deg, transparent, #c3cad2); }
+  .end-line:last-child { background: linear-gradient(90deg, #c3cad2, transparent); }
+
+  .empty { text-align: center; padding: 70px 0 40px; color: var(--ink-2); }
+  .empty .icon { color: #b6bdc6; margin-bottom: 14px; }
+  .empty-title { font-family: var(--font-display); font-weight: 600; font-size: 24px; color: var(--ink); }
+  .empty-sub { margin: 8px 0 20px; font-weight: 600; font-size: 14.5px; }
+  .empty-reset, .empty-reset:hover { display: inline-block; padding: 10px 22px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 800; font-size: 14px; transition: transform .15s; }
+  .empty-reset:hover { transform: translate3d(0, -2px, 0); }
+
+  /* ============ Detail modal (glass) ============ */
+  .overlay { position: fixed; inset: 0; z-index: 100; background: rgba(13,17,23,.52); -webkit-backdrop-filter: blur(12px) saturate(1.2); backdrop-filter: blur(12px) saturate(1.2); display: grid; place-items: center; padding: 22px; opacity: 0; transition: opacity .24s ease; }
+  .overlay.in { opacity: 1; }
+  .modal { --tr: 146,153,161; position: relative; width: min(780px, 100%); max-height: min(88vh, 920px); overflow-y: auto; overscroll-behavior: contain; background: #fff; border-radius: 22px; box-shadow: 0 40px 90px -20px rgba(8,12,20,.55); transform: translate3d(0, 26px, 0) scale(.96); opacity: 0; transition: transform .3s cubic-bezier(.22,1,.36,1), opacity .24s ease; }
+  .overlay.in .modal { transform: none; opacity: 1; }
+  .m-close { position: absolute; top: 14px; right: 14px; width: 38px; height: 38px; border-radius: 999px; background: rgba(31,35,42,.08); color: var(--ink); display: grid; place-items: center; z-index: 3; transition: background .15s, transform .2s; }
+  .m-close:hover { background: rgba(31,35,42,.18); transform: rotate(90deg); }
+  .m-prev, .m-next { position: absolute; top: 50%; transform: translate3d(0, -50%, 0); width: 40px; height: 40px; border-radius: 999px; background: #fff; box-shadow: var(--shadow-1); display: grid; place-items: center; color: var(--ink-2); z-index: 3; transition: color .15s, transform .2s; }
+  .m-prev { left: 14px; } .m-next { right: 14px; }
+  .m-prev:hover, .m-next:hover { color: var(--ink); }
+  .m-prev:active { transform: translate3d(-2px, -50%, 0); } .m-next:active { transform: translate3d(2px, -50%, 0); }
+
+  .m-head { position: relative; padding: 26px 34px 22px; background: radial-gradient(120% 130% at 82% -20%, rgba(var(--tr), .3), transparent 55%), linear-gradient(180deg, rgba(var(--tr), .16), rgba(var(--tr), .04) 70%, transparent); border-bottom: 1px solid var(--line); overflow: hidden; }
+  .m-art-wrap { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+  .m-figure { position: relative; width: 224px; height: 224px; flex: none; display: grid; place-items: center; }
+  .m-figure::before { content: ""; position: absolute; inset: 4%; border-radius: 999px; background: radial-gradient(closest-side, rgba(var(--tr), .38), transparent 72%); }
+  .m-art { position: relative; width: 208px; height: 208px; object-fit: contain; filter: drop-shadow(0 18px 22px rgba(var(--tr), .45)); }
+  .m-id-block { flex: 1; min-width: 230px; }
+  .m-id { font-weight: 900; color: rgb(var(--tr)); font-size: 13px; letter-spacing: 1.2px; }
+  .m-title { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 4vw, 38px); line-height: 1.08; margin-top: 1px; }
+  .m-genus { font-weight: 800; font-style: italic; color: var(--ink-2); font-size: 14px; margin-top: 3px; }
+  .m-types { display: flex; gap: 7px; margin: 12px 0 16px; }
+  .cry-btn { display: inline-flex; align-items: center; gap: 10px; padding: 9px 16px; border-radius: 999px; border: 2px solid var(--line); background: #fff; font-weight: 800; font-size: 13.5px; color: var(--ink-2); transition: border-color .15s, color .15s; }
+  .cry-btn:hover { color: var(--ink); border-color: #c9d0d8; }
+  .eq { display: flex; gap: 2.5px; align-items: flex-end; height: 14px; }
+  .eq i { width: 3px; border-radius: 2px; background: rgb(var(--tr)); height: 4px; }
+  .cry-btn.playing .eq i { animation: eq .45s ease-in-out infinite alternate; }
+  .eq i:nth-child(2) { animation-delay: .1s; } .eq i:nth-child(3) { animation-delay: .2s; } .eq i:nth-child(4) { animation-delay: .3s; } .eq i:nth-child(5) { animation-delay: .4s; }
+  @keyframes eq { from { height: 3px; } to { height: 14px; } }
+
+  .m-body { padding: 22px 32px 32px; }
+  .m-section { margin-top: 24px; }
+  .m-section:first-child { margin-top: 0; }
+  .m-h { display: flex; align-items: center; gap: 12px; font-size: 11.5px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; color: var(--ink-3); margin-bottom: 13px; }
+  .m-h::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+  .flavor { font-size: 15.5px; line-height: 1.65; color: #333a43; font-weight: 600; }
+  .vitals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .vital { background: #f6f8fa; border-radius: 14px; padding: 12px 14px 13px; }
+  .vital .k { font-size: 10.5px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-3); }
+  .vital .v { font-weight: 800; font-size: 14.5px; margin-top: 4px; line-height: 1.45; }
+  .vital .v small { color: var(--ink-3); font-weight: 700; }
+  .v-abilities { display: flex; flex-wrap: wrap; gap: 5px; }
+  .ability { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px 3px; font-size: 12.5px; }
+  .ability-h { border-style: dashed; color: var(--ink-2); }
+
+  .stat { display: grid; grid-template-columns: 78px 1fr 44px; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .stat .sk { font-weight: 800; font-size: 12.5px; color: var(--ink-2); letter-spacing: .3px; }
+  .stat .sv { font-weight: 900; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+  .bar { display: block; height: 9px; border-radius: 999px; background: #edf0f3; overflow: hidden; }
+  .bar-fill { display: block; height: 100%; border-radius: 999px; background: #8a929c; transform: scaleX(var(--v, 0)); transform-origin: 0 50%; transition: transform .8s cubic-bezier(.22,1,.36,1); box-shadow: inset 0 -1px 2px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.35); }
+  .total-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 12px; border-top: 1px dashed var(--line); font-weight: 900; font-size: 13.5px; color: var(--ink-2); }
+  .total-row b { font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .weak-group { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 11px; }
+  .weak-label { width: 104px; flex: none; font-size: 10.5px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; padding-top: 6px; }
+  .weak-group.w-bad .weak-label { color: #c2453a; }
+  .weak-group.w-good .weak-label { color: #2f7d43; }
+  .weak-group.w-zero .weak-label { color: #7c848e; }
+  .weak-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .evo-branch { display: flex; flex-direction: column; align-items: center; }
+  .evo-node { width: 106px; padding: 10px 6px 9px; border-radius: 14px; background: #fff; border: 1.5px solid var(--line); text-align: center; transition: transform .16s, border-color .16s, box-shadow .16s; }
+  .evo-node:hover { transform: translate3d(0, -3px, 0); border-color: rgba(43,108,212,.5); box-shadow: 0 8px 16px -8px rgba(30,87,176,.35); }
+  .evo-node.now { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(43,108,212,.18); }
+  .evo-node img { width: 72px; height: 72px; margin: 0 auto; image-rendering: auto; }
+  .evo-name { font-family: var(--font-display); font-weight: 500; font-size: 13.5px; margin-top: 3px; }
+  .evo-cond { font-size: 9.5px; font-weight: 800; color: var(--ink-3); text-transform: uppercase; letter-spacing: .5px; min-height: 13px; }
+  .evo-arrow { color: #b6bdc6; padding: 3px 0; display: grid; place-items: center; }
+  .evo-children { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+  .evo-loading { display: flex; justify-content: center; padding: 16px 0; }
+
+  /* ============ Toasts / back-to-top / footer ============ */
+  .toasts { position: fixed; left: 50%; bottom: 22px; transform: translate3d(-50%, 0, 0); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 200; pointer-events: none; }
+  .toast { display: flex; align-items: center; gap: 10px; background: #23262e; color: #e8ebef; padding: 11px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; box-shadow: 0 14px 30px -10px rgba(10,12,16,.5); animation: toast-in .32s cubic-bezier(.22,1,.36,1); max-width: min(90vw, 480px); }
+  @keyframes toast-in { from { opacity: 0; transform: translate3d(0, 12px, 0); } }
+  .to-top { position: fixed; right: 22px; bottom: 22px; width: 46px; height: 46px; border-radius: 999px; background: var(--nav-bg); color: #fff; display: grid; place-items: center; box-shadow: 0 10px 24px -8px rgba(10,12,16,.5); opacity: 0; transform: translate3d(0, 14px, 0); pointer-events: none; transition: opacity .25s, transform .25s; z-index: 90; }
+  .to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+  .footer { background: var(--nav-bg); color: #8f96a0; padding: 26px 22px; }
+  .footer-inner { max-width: 1160px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 600; }
+  .footer a { color: #c7ccd4; }
+  .crash { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: 20px; }
+
+  @media (max-width: 760px) {
+    .nav-links .txt { display: none; }
+    .m-prev, .m-next { display: none; }
+    .m-head { padding: 22px 20px 18px; text-align: center; }
+    .m-art-wrap { justify-content: center; }
+    .m-types, .m-types { justify-content: center; }
+    .m-id-block { min-width: 0; }
+    .m-body { padding: 20px 18px 26px; }
+    .weak-group { flex-direction: column; gap: 6px; }
+    .weak-label { width: auto; padding-top: 3px; }
+  }
+  @media (max-width: 560px) {
+    .search-input, .search-btn { height: 50px; }
+    .callout { font-size: 13px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 22px 12px; }
+    .sort-wrap { margin-left: 0; width: 100%; }
+    .sort-menu { left: 0; right: auto; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Strict, ordered UMD loading: React is fully defined before any app code runs.
+     No in-browser Babel / no text/babel — htm compiles tagged templates at runtime with zero overhead. -->
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   0. Safe hook destructuring — done ONCE, after React is guaranteed to
+      exist. This is the direct fix for
+      "TypeError: useState is not a function or its return value is not
+       iterable": that error occurs when hooks are destructured from an
+       undefined/mis-ordered React global, or when useState's array
+       return is destructured incorrectly.
+   ===================================================================== */
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+const html = htm.bind(React.createElement);
+
+/* =====================================================================
+   1. Constants & pure helpers
+   ===================================================================== */
+const API = 'https://pokeapi.co/api/v2';
+const ART = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+const CRY_BASE = 'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest';
+const TOTAL = 1025;
+const CHUNK = 48;
+
+const TYPE_COLORS = {
+  normal:'#9299a1', fire:'#ff9c54', water:'#5090d6', electric:'#f4d23c', grass:'#63bc5a',
+  ice:'#73cec0', fighting:'#ce4069', poison:'#ab6ac8', ground:'#d97845', flying:'#8fa9de',
+  psychic:'#f97176', bug:'#90c12c', rock:'#c7b78b', ghost:'#5269ac', dragon:'#0b6dc3',
+  dark:'#5a5465', steel:'#5a8ea1', fairy:'#ec8fe6'
+};
+const TYPE_LIST = Object.keys(TYPE_COLORS);
+
+const GENERATIONS = [
+  { n: 'I', from: 1, to: 151 }, { n: 'II', from: 152, to: 251 }, { n: 'III', from: 252, to: 386 },
+  { n: 'IV', from: 387, to: 493 }, { n: 'V', from: 494, to: 649 }, { n: 'VI', from: 650, to: 721 },
+  { n: 'VII', from: 722, to: 809 }, { n: 'VIII', from: 810, to: 905 }, { n: 'IX', from: 906, to: 1025 }
+];
+const genOf = id => { const g = GENERATIONS.find(g => id >= g.from && id <= g.to); return g ? g.n : '?'; };
+
+const STAT_META = {
+  hp: ['HP', '#ef5350'], attack: ['Attack', '#f2964f'], defense: ['Defense', '#eec643'],
+  'special-attack': ['Sp. Atk', '#6f9be8'], 'special-defense': ['Sp. Def', '#7fc86f'], speed: ['Speed', '#ef7fa5']
+};
+
+const ART_SOURCES = [
+  id => `${ART}/other/official-artwork/${id}.png`,
+  id => `${ART}/other/home/${id}.png`,
+  id => `${ART}/${id}.png`
+];
+
+const hexToRgb = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const rgba = (hex, a) => { const [r, g, b] = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; };
+const shade = (hex, f) => {
+  const c = hexToRgb(hex).map(v => f > 0 ? Math.round(v + (255 - v) * f) : Math.round(v * (1 + f)));
+  return '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
+};
+const luma = hex => { const [r, g, b] = hexToRgb(hex); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+const typeCssVars = type => {
+  const hex = TYPE_COLORS[type] || '#8a929c';
+  const [r, g, b] = hexToRgb(hex);
+  return { '--tr': `${r},${g},${b}`, '--bl': shade(hex, 0.22), '--bd': shade(hex, -0.24) };
+};
+const chipVars = t => {
+  const hex = TYPE_COLORS[t]; const dark = luma(hex) > 0.7;
+  return { '--chip': hex, '--chip-l': shade(hex, 0.18), '--chip-d': shade(hex, -0.26), '--tx': dark ? '#23272e' : '#fff' };
+};
+
+const idFromUrl = url => { const m = /\/(\d+)\/?$/.exec(url || ''); return m ? +m[1] : 0; };
+const pad = id => String(id).padStart(3, '0');
+const titleCase = s => (s || '').split('-').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join('-');
+const displayName = name => {
+  const specials = {
+    'nidoran-f': 'Nidoran ♀', 'nidoran-m': 'Nidoran ♂', 'mr-mime': 'Mr. Mime', 'mr-rime': 'Mr. Rime',
+    'mime-jr': 'Mime Jr.', 'farfetchd': "Farfetch'd", 'sirfetchd': "Sirfetch'd", 'flabebe': 'Flabébé'
+  };
+  return specials[name] || titleCase(name);
+};
+const normalize = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+const fmtHeight = m => { const tIn = Math.round(m * 39.3701); return `${m.toFixed(1)} m (${Math.floor(tIn / 12)}′${String(tIn % 12).padStart(2, '0')}″)`; };
+const fmtWeight = kg => `${kg.toFixed(1)} kg (${(kg * 2.20462).toFixed(1)} lbs.)`;
+
+const evoLabel = details => {
+  const d = (details || [])[0] || {};
+  if (d.min_level) return `Lv ${d.min_level}`;
+  if (d.item && d.item.name) return titleCase(d.item.name).replace(/-/g, ' ');
+  if (d.trigger && d.trigger.name === 'trade') return 'Trade';
+  if (d.min_happiness) return 'Happiness';
+  if (d.held_item && d.held_item.name) return 'Hold ' + titleCase(d.held_item.name).replace(/-/g, ' ');
+  if (d.time_of_day) return titleCase(d.time_of_day);
+  return d.trigger ? titleCase(d.trigger.name).replace(/-/g, ' ') : '';
+};
+
+/* =====================================================================
+   2. Data layer — in-memory cache with promise de-duplication.
+      Every payload is fetched at most once per session; concurrent
+      requesters share the same in-flight promise.
+   ===================================================================== */
+const cache = new Map();
+function cachedFetch(key, url) {
+  if (!cache.has(key)) {
+    const p = fetch(url).then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+      return r.json();
+    }).catch(err => { cache.delete(key); throw err; }); // allow retry after failure
+    cache.set(key, p);
+  }
+  return cache.get(key);
+}
+
+/* Small concurrency gate so a fast scroll burst doesn't open dozens of
+   simultaneous requests. Modal fetches bypass the queue (priority). */
+function createLimiter(max) {
+  const q = []; let active = 0;
+  const pump = () => {
+    if (active >= max || q.length === 0) return;
+    active++;
+    const task = q.shift();
+    Promise.resolve(task()).catch(() => {}).then(() => { active--; pump(); });
+  };
+  return fn => new Promise((resolve, reject) => { q.push(() => fn().then(resolve, reject)); pump(); });
+}
+const limiter = createLimiter(6);
+
+const getPokemonBg  = id => limiter(() => cachedFetch(`p:${id}`, `${API}/pokemon/${id}`));
+const getPokemon    = id => cachedFetch(`p:${id}`, `${API}/pokemon/${id}`);
+const getSpecies    = id => cachedFetch(`s:${id}`, `${API}/pokemon-species/${id}`);
+const getTypeData   = name => cachedFetch(`t:${name}`, `${API}/type/${name}`);
+const getChain      = url => cachedFetch(`c:${url}`, url);
+
+/* =====================================================================
+   3. Hooks
+   ===================================================================== */
+function useDebouncedValue(value, delay) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return v;
+}
+
+function useInView(margin) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { setInView(true); io.disconnect(); }
+    }, { rootMargin: margin });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, inView];
+}
+
+function useAsyncData(fn, deps) {
+  const [state, setState] = useState({ loading: true, data: null, error: null });
+  useEffect(() => {
+    let alive = true;
+    setState(s => (s.loading && s.data === null && s.error === null ? s : { loading: true, data: null, error: null }));
+    Promise.resolve(fn())
+      .then(data => { if (alive) setState({ loading: false, data, error: null }); })
+      .catch(error => { if (alive) setState({ loading: false, data: null, error }); });
+    return () => { alive = false; };
+  }, deps);
+  return state;
+}
+
+/* Per-card detail: fetched only once the card approaches the viewport. */
+function usePokemonDetail(id, background) {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    if (id == null) { setData(null); return; }
+    let alive = true;
+    setData(null);
+    (background ? getPokemonBg : getPokemon)(id)
+      .then(d => { if (alive) setData(d); })
+      .catch(() => { /* graceful: card still shows name + artwork from URLs */ });
+    return () => { alive = false; };
+  }, [id]);
+  return data;
+}
+
+/* Official-artwork URL with graceful fallback chain. */
+function useArtwork(id) {
+  const [idx, setIdx] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setIdx(0); setLoaded(false); }, [id]);
+  const onError = useCallback(() => setIdx(i => i < ART_SOURCES.length - 1 ? i + 1 : i), []);
+  const onLoad = useCallback(() => setLoaded(true), []);
+  const src = ART_SOURCES[Math.min(idx, ART_SOURCES.length - 1)](id);
+  return { src, loaded, onLoad, onError };
+}
+
+/* =====================================================================
+   4. Primitives — icons, logo, badges
+   ===================================================================== */
+function Icon({ name, size = 20 }) {
+  const paths = {
+    search:   [html`<circle cx="11" cy="11" r="7" />`, html`<path d="M20.5 20.5 16 16" />`],
+    chevron:  [html`<path d="m6 9 6 6 6-6" />`],
+    close:    [html`<path d="M18 6 6 18M6 6l12 12" />`],
+    shuffle:  [html`<path d="M16 3h5v5" />`, html`<path d="M4 20 21 3" />`, html`<path d="M21 16v5h-5" />`, html`<path d="m15 15 6 6" />`, html`<path d="M4 4l5 5" />`],
+    info:     [html`<circle cx="12" cy="12" r="9" />`, html`<path d="M12 16v-4" />`, html`<path d="M12 8h.01" />`],
+    volume:   [html`<path d="M11 5 6 9H2v6h4l5 4z" />`, html`<path d="M15.5 8.5a5 5 0 0 1 0 7" />`, html`<path d="M19 5a9 9 0 0 1 0 14" />`],
+    left:     [html`<path d="m15 18-6-6 6-6" />`],
+    right:    [html`<path d="m9 18 6-6-6-6" />`],
+    up:       [html`<path d="m18 15-6-6-6 6" />`],
+    sliders:  [html`<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3" />`, html`<path d="M1 14h6M9 8h6M17 16h6" />`],
+    grid:     [html`<rect x="3" y="3" width="7" height="7" rx="1.5" />`, html`<rect x="14" y="3" width="7" height="7" rx="1.5" />`, html`<rect x="3" y="14" width="7" height="7" rx="1.5" />`, html`<rect x="14" y="14" width="7" height="7" rx="1.5" />`],
+    check:    [html`<path d="M20 6 9 17l-5-5" />`]
+  };
+  return html`<svg className="icon" width=${size} height=${size} viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    ${(paths[name] || [])}
+  </svg>`;
+}
+
+function Pokeball({ size = 28 }) {
+  return html`<svg width=${size} height=${size} viewBox="0 0 48 48" aria-hidden="true">
+    <circle cx="24" cy="24" r="21" fill="#fff" stroke="#262a31" strokeWidth="3" />
+    <path d="M3 24a21 21 0 0 1 42 0Z" fill="#e3350d" />
+    <rect x="2" y="20.5" width="44" height="7" fill="#262a31" />
+    <circle cx="24" cy="24" r="7.5" fill="#fff" stroke="#262a31" strokeWidth="3" />
+    <circle cx="24" cy="24" r="2.6" fill="#262a31" />
+  </svg>`;
+}
+
+function TypeBadge({ type, small }) {
+  const hex = TYPE_COLORS[type] || '#8a929c';
+  const dark = luma(hex) > 0.7;
+  const style = { ...typeCssVars(type), color: dark ? '#23272e' : '#fff', textShadow: dark ? 'none' : '0 1px 1px rgba(0,0,0,.28)' };
+  return html`<span className=${'badge' + (small ? ' badge-sm' : '')} style=${style}>${type}</span>`;
+}
+
+/* =====================================================================
+   5. Sort dropdown (custom, GPU-animated)
+   ===================================================================== */
+const SORTS = [
+  ['id-asc', 'Number (low → high)'],
+  ['id-desc', 'Number (high → low)'],
+  ['name-asc', 'Name (A → Z)'],
+  ['name-desc', 'Name (Z → A)']
+];
+
+function SortDropdown({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = e => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('pointerdown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('pointerdown', onDoc); document.removeEventListener('keydown', onKey); };
+  }, [open]);
+  const current = (SORTS.find(s => s[0] === value) || SORTS[0])[1];
+  return html`<div className="sort-wrap" ref=${ref}>
+    <button type="button" className="sort-btn" onClick=${() => setOpen(o => !o)} aria-haspopup="listbox" aria-expanded=${open}>
+      <span className="sort-k">Sort By</span>
+      <span className="sort-v">${current}</span>
+      <span className=${'chev' + (open ? ' flip' : '')}><${Icon} name="chevron" size=${16} /></span>
+    </button>
+    <div className=${'sort-menu' + (open ? ' open' : '')} role="listbox">
+      ${SORTS.map(([k, label]) => html`
+        <button key=${k} type="button" role="option" aria-selected=${value === k}
+          className=${'sort-item' + (value === k ? ' on' : '')}
+          onClick=${() => { onChange(k); setOpen(false); }}>
+          <span>${label}</span>
+          ${value === k ? html`<${Icon} name="check" size=${15} />` : null}
+        </button>`)}
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   6. Pokémon card — ambient type glow, pointer-tracked 3D tilt
+   ===================================================================== */
+function PokemonCard({ p, onOpen }) {
+  const [viewRef, inView] = useInView('500px');
+  const detail = usePokemonDetail(inView ? p.id : null, true);
+  const art = useArtwork(p.id);
+  const tiltRef = useRef(null);
+
+  const types = (detail && Array.isArray(detail.types)) ? detail.types : [];
+  const primary = types.length && types[0].type ? types[0].type.name : null;
+  const vars = primary ? typeCssVars(primary) : null;
+
+  const onMove = e => {
+    if (e.pointerType !== 'mouse') return;
+    const el = tiltRef.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+    el.style.setProperty('--ry', ((x - 0.5) * 9).toFixed(2) + 'deg');
+    el.style.setProperty('--rx', ((0.5 - y) * 9).toFixed(2) + 'deg');
+    el.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
+    el.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+    el.style.setProperty('--ty', '-7px');
+  };
+  const onLeave = () => {
+    const el = tiltRef.current; if (!el) return;
+    el.style.setProperty('--rx', '0deg');
+    el.style.setProperty('--ry', '0deg');
+    el.style.setProperty('--ty', '0px');
+  };
+
+  return html`<div className="card-slot" ref=${viewRef}>
+    <div className=${'card-tilt' + (primary ? ' typed' : '')} ref=${tiltRef} style=${vars}
+      onPointerMove=${onMove} onPointerLeave=${onLeave}>
+      <span className="card-glow" aria-hidden="true"></span>
+      <button type="button" className="card" onClick=${() => onOpen(p.id)}
+        aria-label=${'View ' + displayName(p.name) + ' details'}>
+        <span className="card-id">Nº ${pad(p.id)}</span>
+        <span className="card-figure">
+          ${!art.loaded && html`<span className="ph ph-fig" aria-hidden="true"></span>`}
+          <img className=${'card-art' + (art.loaded ? ' is-loaded' : '')} src=${art.src}
+            alt=${displayName(p.name)} width="116" height="116" loading="lazy" decoding="async"
+            onLoad=${art.onLoad} onError=${art.onError} />
+        </span>
+        <span className="card-name">${displayName(p.name)}</span>
+        <span className="card-types">
+          ${types.length
+            ? types.map(t => html`<${TypeBadge} key=${t.slot} type=${t.type.name} />`)
+            : [html`<span key="a" className="ph ph-b" />`, html`<span key="b" className="ph ph-b" />`]}
+        </span>
+        <span className="card-sheen" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   7. Detail modal
+   ===================================================================== */
+function StatRow({ label, color, value }) {
+  const [on, setOn] = useState(false);
+  useEffect(() => { const r = requestAnimationFrame(() => setOn(true)); return () => cancelAnimationFrame(r); }, []);
+  return html`<div className="stat">
+    <span className="sk">${label}</span>
+    <span className="bar"><span className="bar-fill" style=${{ background: color, '--v': String(on ? Math.min(1, value / 200) : 0) }}></span></span>
+    <span className="sv">${value}</span>
+  </div>`;
+}
+
+function EvoBranch({ node, currentId, onOpen, root }) {
+  return html`<div className="evo-branch">
+    <button type="button" className=${'evo-node' + (node.id === currentId ? ' now' : '')}
+      onClick=${() => onOpen(node.id)} aria-label=${'View ' + displayName(node.name)}>
+      <img src=${`${ART}/${node.id}.png`} alt=${displayName(node.name)} width="72" height="72" loading="lazy"
+        onError=${e => { e.currentTarget.style.visibility = 'hidden'; }} />
+      <div className="evo-name">${displayName(node.name)}</div>
+      <div className="evo-cond">${(!root && node.cond) || ''}</div>
+    </button>
+    ${(node.next || []).length > 0 && html`<div className="evo-arrow"><${Icon} name="chevron" size=${18} /></div>`}
+    ${(node.next || []).length > 0 && html`<div className="evo-children">
+      ${node.next.map(n => html`<${EvoBranch} key=${n.id} node=${n} currentId=${currentId} onOpen=${onOpen} root=${false} />`)}
+    </div>`}
+  </div>`;
+}
+
+function DetailModal({ id, list, onRequestClose, onNavigate, pushToast }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const scrollRef = useRef(null);
+  const closeRef = useRef(null);
+  const audioRef = useRef(null);
+  const [cryPlaying, setCryPlaying] = useState(false);
+
+  const pokemon = usePokemonDetail(id, false);
+  const speciesState = useAsyncData(() => getSpecies(id), [id]);
+  const species = speciesState.data;
+  const chainUrl = species && species.evolution_chain ? species.evolution_chain.url : null;
+  const chainState = useAsyncData(() => (chainUrl ? getChain(chainUrl) : null), [chainUrl]);
+
+  const art = useArtwork(id);
+  const listName = ((list || []).find(x => x.id === id) || {}).name || '';
+
+  const types = (pokemon && Array.isArray(pokemon.types)) ? pokemon.types.map(t => t.type.name) : [];
+  const typesKey = types.join(',');
+  const typeState = useAsyncData(() => (types.length ? Promise.all(types.map(t => getTypeData(t))) : []), [typesKey]);
+
+  /* open/close choreography */
+  useEffect(() => { const r = requestAnimationFrame(() => setIsOpen(true)); return () => cancelAnimationFrame(r); }, []);
+  useEffect(() => { const t = setTimeout(() => closeRef.current && closeRef.current.focus(), 80); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [id]);
+
+  const close = useCallback(() => { setIsOpen(false); setTimeout(onRequestClose, 240); }, [onRequestClose]);
+
+  const idx = useMemo(() => (list || []).findIndex(x => x.id === id), [list, id]);
+  const nav = useCallback(d => {
+    const n = list || [];
+    if (!n.length || idx < 0) return;
+    const next = n[(idx + d + n.length) % n.length];
+    if (next) onNavigate(next.id);
+  }, [list, idx, onNavigate]);
+
+  useEffect(() => {
+    const onKey = e => {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowRight') nav(1);
+      else if (e.key === 'ArrowLeft') nav(-1);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  });
+
+  /* cry playback */
+  const playCry = () => {
+    try {
+      let a = audioRef.current;
+      if (!a) {
+        a = new Audio(`${CRY_BASE}/${id}.ogg`);
+        a.volume = 0.45;
+        audioRef.current = a;
+        a.addEventListener('ended', () => setCryPlaying(false));
+        a.addEventListener('error', () => {
+          setCryPlaying(false);
+          pushToast("Couldn't play the cry — your browser may not support this audio format.");
+        });
+      }
+      a.currentTime = 0;
+      setCryPlaying(true);
+      const pr = a.play();
+      if (pr && pr.catch) pr.catch(() => setCryPlaying(false));
+    } catch (err) {
+      pushToast("Couldn't play the cry.");
+    }
+  };
+  useEffect(() => () => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; audioRef.current = null; }
+  }, []);
+
+  /* derived data — always with safe fallbacks */
+  const primary = types[0] || 'normal';
+  const vars = typeCssVars(primary);
+  const stats = (pokemon && Array.isArray(pokemon.stats)) ? pokemon.stats : [];
+  const total = stats.reduce((s, x) => s + (x.base_stat || 0), 0);
+  const hMeters = pokemon ? (pokemon.height || 0) / 10 : 0;
+  const wKg = pokemon ? (pokemon.weight || 0) / 10 : 0;
+  const gen = GENERATIONS.find(g => id >= g.from && id <= g.to);
+  const abilities = (pokemon && Array.isArray(pokemon.abilities))
+    ? pokemon.abilities.map(a => ({ name: titleCase(a.ability && a.ability.name ? a.ability.name : '').replace(/-/g, ' '), hidden: !!a.is_hidden }))
+    : [];
+
+  const flavor = useMemo(() => {
+    const entries = (species && Array.isArray(species.flavor_text_entries))
+      ? species.flavor_text_entries.filter(e => e.language && e.language.name === 'en') : [];
+    const e = entries[0] || null;
+    return e ? e.flavor_text.replace(/[\n\f\r]+/g, ' ').replace(/\s+/g, ' ').trim() : '';
+  }, [species]);
+  const genus = useMemo(() => {
+    const g = (species && Array.isArray(species.genera)) ? species.genera.find(x => x.language && x.language.name === 'en') : null;
+    return g ? g.genus : '';
+  }, [species]);
+
+  const weak = useMemo(() => {
+    const tds = typeState.data;
+    if (!Array.isArray(tds) || !tds.length) return [];
+    const mult = {};
+    for (const td of tds) {
+      const dr = (td && td.damage_relations) || {};
+      (dr.double_damage_to || []).forEach(x => { mult[x.name] = (mult[x.name] === undefined ? 1 : mult[x.name]) * 2; });
+      (dr.half_damage_to || []).forEach(x => { mult[x.name] = (mult[x.name] === undefined ? 1 : mult[x.name]) * 0.5; });
+      (dr.no_damage_to || []).forEach(x => { mult[x.name] = 0; });
+    }
+    const groups = { '4': [], '2': [], '0.5': [], '0.25': [], '0': [] };
+    for (const t in mult) { const m = String(mult[t]); if (groups[m] && mult[t] !== 1) groups[m].push(t); }
+    const ORDER = [
+      ['4', '4× damage from', 'w-bad'], ['2', '2× damage from', 'w-bad'],
+      ['0.5', '½× damage from', 'w-good'], ['0.25', '¼× damage from', 'w-good'], ['0', 'No effect from', 'w-zero']
+    ];
+    return ORDER.map(([m, label, cls]) => ({ label, cls, list: groups[m].sort() })).filter(g => g.list.length);
+  }, [typeState.data]);
+
+  const evoTree = useMemo(() => {
+    const chain = chainState.data;
+    if (!chain || !chain.chain) return null;
+    const toNode = c => ({
+      id: idFromUrl(c.species && c.species.url),
+      name: (c.species && c.species.name) || '',
+      cond: evoLabel(c.evolution_details),
+      next: (c.evolves_to || []).map(toNode)
+    });
+    return toNode(chain.chain);
+  }, [chainState.data]);
+  return html`<div className=${'overlay' + (isOpen ? ' in' : '')} role="presentation"
+    onClick=${e => { if (e.target === e.currentTarget) close(); }}>
+    <div className="modal" role="dialog" aria-modal="true" ref=${scrollRef}
+      aria-label=${(listName ? displayName(listName) : 'Pokémon') + ' details'}>
+      <button type="button" className="m-close" ref=${closeRef} onClick=${close} aria-label="Close details"><${Icon} name="close" size=${19} /></button>
+      ${(list || []).length > 1 && idx >= 0 && html`<button type="button" className="m-prev" onClick=${() => nav(-1)} aria-label="Previous Pokémon"><${Icon} name="left" size=${20} /></button>`}
+      ${(list || []).length > 1 && idx >= 0 && html`<button type="button" className="m-next" onClick=${() => nav(1)} aria-label="Next Pokémon"><${Icon} name="right" size=${20} /></button>`}
+
+      <div className="m-head" style=${vars}>
+        <div className="m-art-wrap">
+          <div className="m-figure">
+            ${!art.loaded && html`<span className="ph ph-fig-big" aria-hidden="true"></span>`}
+            <img className=${'m-art' + (art.loaded ? ' is-loaded' : '')} style=${art.loaded ? null : { position: 'absolute', opacity: 0 }}
+              src=${art.src} alt=${displayName(listName || 'Pokémon')} onLoad=${art.onLoad} onError=${art.onError} />
+          </div>
+          <div className="m-id-block">
+            <div className="m-id">Nº ${pad(id)}</div>
+            <h2 className="m-title">${displayName(listName || (pokemon ? pokemon.name : ''))}</h2>
+            ${genus ? html`<div className="m-genus">${genus}</div>` : null}
+            <div className="m-types">
+              ${types.length ? types.map(t => html`<${TypeBadge} key=${t} type=${t} />`) : html`<span className="ph ph-b" />`}
+            </div>
+            <button type="button" className=${'cry-btn' + (cryPlaying ? ' playing' : '')} onClick=${playCry}>
+              <span className="eq" aria-hidden="true"><i /><i /><i /><i /><i /></span>
+              ${cryPlaying ? 'Playing cry…' : 'Play cry'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="m-body">
+        <section className="m-section">
+          <h3 className="m-h">Pokédex entry</h3>
+          ${speciesState.loading
+            ? [html`<span key="l1" className="ph ph-line" />`, html`<span key="l2" className="ph ph-line" style=${{ width: '52%' }} />`]
+            : html`<p className="flavor">${flavor || 'No Pokédex entry recorded yet.'}</p>`}
+        </section>
+
+        <section className="m-section">
+          <h3 className="m-h">Vitals</h3>
+          <div className="vitals">
+            <div className="vital"><div className="k">Height</div><div className="v">${pokemon ? fmtHeight(hMeters) : '—'}</div></div>
+            <div className="vital"><div className="k">Weight</div><div className="v">${pokemon ? fmtWeight(wKg) : '—'}</div></div>
+            <div className="vital"><div className="k">Generation</div><div className="v">${gen ? 'Gen ' + gen.n : '—'} ${gen ? html`<small>· Nº ${gen.from}–${gen.to}</small>` : null}</div></div>
+            <div className="vital"><div className="k">Abilities</div><div className="v v-abilities">
+              ${abilities.length
+                ? abilities.map(a => html`<span key=${a.name} className=${'ability' + (a.hidden ? ' ability-h' : '')}>${a.name}${a.hidden ? ' (hidden)' : ''}</span>`)
+                : '—'}
+            </div></div>
+          </div>
+        </section>
+
+        <section className="m-section">
+          <h3 className="m-h">Base stats</h3>
+          ${pokemon
+            ? html`<div>
+                ${Object.entries(STAT_META).map(([k, [label, color]]) => {
+                  const st = stats.find(s => s.stat && s.stat.name === k);
+                  return html`<${StatRow} key=${k} label=${label} color=${color} value=${st ? st.base_stat : 0} />`;
+                })}
+                <div className="total-row"><span>Total</span><b>${total}</b></div>
+              </div>`
+            : [html`<span key="s1" className="ph ph-line" />`, html`<span key="s2" className="ph ph-line" />`, html`<span key="s3" className="ph ph-line" />`]}
+        </section>
+
+        <section className="m-section">
+          <h3 className="m-h">Type weaknesses</h3>
+          ${!pokemon || typeState.loading
+            ? [html`<span key="w1" className="ph ph-line" />`, html`<span key="w2" className="ph ph-line" />`]
+            : (weak.length
+              ? html`<div>${weak.map(g => html`
+                  <div key=${g.label} className=${'weak-group ' + g.cls}>
+                    <span className="weak-label">${g.label}</span>
+                    <span className="weak-chips">${g.list.map(t => html`<${TypeBadge} key=${t} type=${t} small />`)}</span>
+                  </div>`)}</div>`
+              : html`<p className="flavor">No recorded type weaknesses.</p>`)}
+        </section>
+
+        <section className="m-section">
+          <h3 className="m-h">Evolution chain</h3>
+          ${speciesState.loading
+            ? html`<div className="evo-loading"><span className="spinner sm" /></div>`
+            : (chainUrl
+              ? (chainState.loading
+                ? html`<div className="evo-loading"><span className="spinner sm" /></div>`
+                : (evoTree ? html`<${EvoBranch} node=${evoTree} currentId=${id} onOpen=${onNavigate} root=${true} />` : null))
+              : html`<p className="flavor">Evolution data unavailable for this Pokémon.</p>`)}
+        </section>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   8. App shell — official layout structure
+   ===================================================================== */
+function App() {
+  const [query, setQuery] = useState('');
+  const debounced = useDebouncedValue(query, 220);
+  const [advOpen, setAdvOpen] = useState(false);
+  const [selTypes, setSelTypes] = useState([]);
+  const [selGens, setSelGens] = useState([]);
+  const [sort, setSort] = useState('id-asc');
+  const [modalId, setModalId] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const [showTop, setShowTop] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const heroRef = useRef(null);
+  const dexRef = useRef(null);
+  const sentinelRef = useRef(null);
+  const toastSeq = useRef(0);
+
+  const pushToast = useCallback(msg => {
+    const id = ++toastSeq.current;
+    setToasts(t => [...t, { id, msg }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3600);
+  }, []);
+
+  /* National Pokédex roster — one request, cached for the session */
+  const listState = useAsyncData(() => cachedFetch('list', `${API}/pokemon?limit=${TOTAL}`), [reloadKey]);
+  const dex = useMemo(() => {
+    const results = (listState.data && Array.isArray(listState.data.results)) ? listState.data.results : [];
+    return results.map((p, i) => ({ id: idFromUrl(p.url) || i + 1, name: p.name })).filter(p => p.id <= TOTAL);
+  }, [listState.data]);
+
+  /* Type rosters — fetched on demand (one request per selected type), cached */
+  const [rosters, setRosters] = useState({});
+  const [rostersLoading, setRostersLoading] = useState(false);
+  useEffect(() => {
+    const missing = (selTypes || []).filter(t => !(t in rosters));
+    if (!missing.length) return;
+    let alive = true;
+    setRostersLoading(true);
+    Promise.all(missing.map(t => getTypeData(t).then(d => {
+      const ids = new Set((d.pokemon || []).map(x => idFromUrl(x.pokemon && x.pokemon.url)));
+      return [t, ids];
+    }))).then(pairs => {
+      if (!alive) return;
+      setRosters(r => { const n = { ...r }; for (const [t, ids] of pairs) n[t] = ids; return n; });
+      setRostersLoading(false);
+    }).catch(() => {
+      if (alive) { setRostersLoading(false); pushToast("Couldn't load type data — check your connection."); }
+    });
+    return () => { alive = false; };
+  }, [selTypes]);
+
+  const rostersReady = (selTypes || []).every(t => rosters[t]);
+  const rosterIds = useMemo(() => {
+    if (!selTypes.length || !rostersReady) return null;
+    const s = new Set();
+    for (const t of selTypes) { const r = rosters[t] || []; for (const id of r) s.add(id); }
+    return s;
+  }, [selTypes, rosters, rostersReady]);
+
+  /* Filter + sort — pure, instant, over cached data */
+  const filtered = useMemo(() => {
+    let out = dex || [];
+    if (rosterIds) out = out.filter(p => rosterIds.has(p.id));
+    if (selGens.length) { const gs = new Set(selGens); out = out.filter(p => gs.has(genOf(p.id))); }
+    const q = normalize(debounced);
+    if (q) out = out.filter(p => (q.length && p.id === +q) || normalize(p.name).includes(q));
+    const sorted = out.slice();
+    if (sort === 'id-desc') sorted.reverse();
+    else if (sort === 'name-asc') sorted.sort((a, b) => a.name.localeCompare(b.name));
+    else if (sort === 'name-desc') sorted.sort((a, b) => b.name.localeCompare(a.name));
+    return sorted;
+  }, [dex, rosterIds, selGens, debounced, sort]);
+
+  /* Chunked infinite rendering */
+  const [visibleCount, setVisibleCount] = useState(CHUNK);
+  const filterKey = `${debounced}|${selTypes.join(',')}|${selGens.join(',')}|${sort}`;
+  useEffect(() => { setVisibleCount(CHUNK); }, [filterKey]);
+  const page = (filtered || []).slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) setVisibleCount(c => c + CHUNK);
+    }, { rootMargin: '1000px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore]);
+
+  /* Back-to-top visibility */
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 640);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const toggleType = t => setSelTypes(a => (a || []).includes(t) ? a.filter(x => x !== t) : [...(a || []), t]);
+  const toggleGen = g => setSelGens(a => (a || []).includes(g) ? a.filter(x => x !== g) : [...(a || []), g]);
+  const resetFilters = () => { setSelTypes([]); setSelGens([]); };
+  const resetAll = () => { resetFilters(); setQuery(''); setSort('id-asc'); };
+
+  const scrollTo = ref => { if (ref.current) ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const onSearch = e => { e.preventDefault(); scrollTo(dexRef); };
+
+  const openDetail = useCallback(id => setModalId(id), []);
+  const modalList = useMemo(() => {
+    const f = filtered || [], d = dex || [];
+    return (modalId != null && f.some(x => x.id === modalId)) ? f : d;
+  }, [filtered, dex, modalId]);
+
+  const surprise = () => {
+    const pool = (filtered && filtered.length ? filtered : (dex || []));
+    if (!pool.length) { pushToast('The Pokédex is still loading — try again in a moment.'); return; }
+    setModalId(pool[Math.floor(Math.random() * pool.length)].id);
+  };
+
+  return html`<${React.Fragment}>
+    <nav className="nav">
+      <div className="nav-inner">
+        <a className="brand" href="#top" onClick=${e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+          <${Pokeball} size=${30} />
+          <span className="brand-name">Pokédex</span>
+          <span className="brand-tag">National</span>
+        </a>
+        <div className="nav-links">
+          <button type="button" className="nav-link" onClick=${() => { resetAll(); scrollTo(dexRef); }}>
+            <${Icon} name="grid" size=${16} /><span className="txt">All Pokémon</span>
+          </button>
+          <button type="button" className="nav-link" onClick=${() => { setAdvOpen(true); scrollTo(heroRef); }}>
+            <${Icon} name="sliders" size=${16} /><span className="txt">Advanced Search</span>
+          </button>
+          <button type="button" className="nav-link" onClick=${surprise}>
+            <${Icon} name="shuffle" size=${16} /><span className="txt">Surprise Me</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <header className="hero" ref=${heroRef}>
+      <div className="hero-inner">
+        <h1 className="kicker">What Pokémon are you looking for?</h1>
+        <form className="search-row" onSubmit=${onSearch} role="search">
+          <div className="search-field">
+            <span className="lead-icon"><${Icon} name="search" size=${20} /></span>
+            <input className="search-input" type="text" value=${query} autoComplete="off" spellCheck="false"
+              placeholder="Name or National Pokédex number" aria-label="Search Pokémon"
+              onChange=${e => setQuery(e.target.value)} />
+          </div>
+          <button type="submit" className="search-btn" aria-label="Search"><${Icon} name="search" size=${24} /></button>
+        </form>
+        <div className="callout" role="note">
+          <span className="icon-badge"><${Icon} name="info" size=${18} /></span>
+          <span>Search for a Pokémon by name or using its National Pokédex number.</span>
+        </div>
+        <button type="button" className=${'adv-toggle' + (advOpen ? ' open' : '')} onClick=${() => setAdvOpen(o => !o)} aria-expanded=${advOpen}>
+          <${Icon} name="sliders" size=${17} />
+          <span>${advOpen ? 'Hide' : 'Show'} Advanced Search</span>
+          <span className="chev"><${Icon} name="chevron" size=${17} /></span>
+        </button>
+        <div className=${'collapse' + (advOpen ? ' open' : '')}>
+          <div className="collapse-in">
+            <div className="adv-panel">
+              <p className="adv-group-label">Type</p>
+              <div className="chip-row">
+                ${TYPE_LIST.map(t => html`<button key=${t} type="button"
+                  className=${'type-chip' + (selTypes.includes(t) ? ' on' : '')} style=${chipVars(t)}
+                  onClick=${() => toggleType(t)} aria-pressed=${selTypes.includes(t)}>
+                  <span className="dot" aria-hidden="true"></span>${t}
+                </button>`)}
+              </div>
+              <p className="adv-group-label">Generation</p>
+              <div className="chip-row">
+                ${GENERATIONS.map(g => html`<button key=${g.n} type="button"
+                  className=${'type-chip gen-chip' + (selGens.includes(g.n) ? ' on' : '')}
+                  onClick=${() => toggleGen(g.n)} aria-pressed=${selGens.includes(g.n)}>
+                  Gen ${g.n}
+                </button>`)}
+              </div>
+              ${(selTypes.length || selGens.length)
+                ? html`<button type="button" className="adv-reset" onClick=${resetFilters}>
+                    <${Icon} name="close" size=${13} /> Clear all filters
+                  </button>`
+                : null}
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div className="action-band">
+      <div className="action-row">
+        <button type="button" className="btn-surprise" onClick=${surprise}>
+          <${Icon} name="shuffle" size=${18} /> Surprise Me!
+        </button>
+        <div className="result-meta">
+          ${rostersLoading ? html`<span className="mini-spin" aria-hidden="true"></span>` : null}
+          ${listState.loading
+            ? 'Loading the National Pokédex…'
+            : html`Showing <b>${page.length}</b> of <b>${filtered.length}</b> Pokémon`}
+        </div>
+        <${SortDropdown} value=${sort} onChange=${setSort} />
+      </div>
+    </div>
+
+    <main className="dex" ref=${dexRef}>
+      <div className="dex-inner">
+        ${listState.error
+          ? html`<div className="empty">
+              <${Pokeball} size=${36} />
+              <p className="empty-title">The Pokédex couldn't load</p>
+              <p className="empty-sub">We couldn't reach PokéAPI. Check your connection and try again.</p>
+              <button type="button" className="empty-reset" onClick=${() => setReloadKey(k => k + 1)}>Retry</button>
+            </div>`
+          : listState.loading
+          ? html`<div className="grid">
+              ${Array.from({ length: 10 }, (_, i) => html`<div key=${i} className="skel-card">
+                <span className="ph sk-id" /><span className="ph sk-fig" /><span className="ph sk-name" />
+                <span className="sk-badges"><span className="ph sk-b" /><span className="ph sk-b" /></span>
+              </div>`)}
+            </div>`
+          : filtered.length === 0
+          ? html`<div className="empty">
+              <${Icon} name="search" size=${40} />
+              <p className="empty-title">No Pokémon found</p>
+              <p className="empty-sub">Try a different name or number${(selTypes.length || selGens.length) ? ' — or clear your filters' : ''}.</p>
+              <button type="button" className="empty-reset" onClick=${resetAll}>Reset search</button>
+            </div>`
+          : html`<${React.Fragment}>
+              <div className="grid">
+                ${page.map(p => html`<${PokemonCard} key=${p.id} p=${p} onOpen=${openDetail} />`)}
+              </div>
+              ${hasMore
+                ? html`<div ref=${sentinelRef} className="sentinel" aria-hidden="true"><span className="spinner"></span></div>`
+                : html`<div className="end-note">
+                    <span className="end-line" /><${Pokeball} size=${16} />
+                    You've reached the end — ${filtered.length} Pokémon
+                    <span className="end-line" />
+                  </div>`}
+            <//>`}
+      </div>
+    </main>
+
+    <footer className="footer">
+      <div className="footer-inner">
+        <span>Fan-built interface · Data &amp; artwork from <a href="https://pokeapi.co" target="_blank" rel="noopener noreferrer">PokéAPI</a></span>
+        <span>Pokémon © Nintendo / Creatures Inc. / GAME FREAK inc. — unofficial educational demo.</span>
+      </div>
+    </footer>
+
+    ${modalId != null && html`<${DetailModal} id=${modalId} list=${modalList}
+      onRequestClose=${() => setModalId(null)} onNavigate=${openDetail} pushToast=${pushToast} />`}
+
+    <div className="toasts" aria-live="polite">
+      ${toasts.map(t => html`<div key=${t.id} className="toast"><${Icon} name="info" size=${17} />${t.msg}</div>`)}
+    </div>
+
+    <button type="button" className=${'to-top' + (showTop ? ' show' : '')} aria-label="Back to top"
+      onClick=${() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+      <${Icon} name="up" size=${20} />
+    </button>
+  <//>`;
+}
+
+/* =====================================================================
+   9. Error boundary + mount
+   ===================================================================== */
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  render() {
+    if (this.state.err) {
+      return html`<div className="crash">
+        <div>
+          <${Pokeball} size=${44} />
+          <h1 style=${{ fontFamily: 'var(--font-display)', margin: '14px 0 8px' }}>Something went wrong</h1>
+          <p style=${{ color: '#59626d', marginBottom: '18px' }}>An unexpected error occurred while rendering.</p>
+          <button type="button" className="empty-reset" onClick=${() => location.reload()}>Reload</button>
+        </div>
+      </div>`;
+    }
+    return this.props.children;
+  }
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${ErrorBoundary}><${App} /><//>`);
+</script>
+</body>
+</html>
